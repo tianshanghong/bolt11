@@ -323,3 +323,40 @@ tape('can encode and decode small timestamp', (t) => {
   t.same(reEncoded.paymentRequest, signedData.paymentRequest)
   t.end()
 })
+
+tape('encode and decode for mutinynet', (t) => {
+  const invoice = lnpayreq.encode({
+    network: {
+      bech32: 'tbs',
+      pubKeyHash: 0x6f,
+      scriptHash: 0xc4,
+      validWitnessVersions: [0, 1]
+    },
+    satoshis: 1234,
+    timestamp: 1600000000,
+    tags: [
+      {
+        tagName: 'payment_hash',
+        data: '0001020304050607080900010203040506070809000102030405060708090102'
+      },
+      {
+        tagName: 'description',
+        data: 'Mutinynet test invoice'
+      }
+    ]
+  })
+
+  // Sign the invoice to produce a complete, valid payment request string
+  const signedInvoice = lnpayreq.sign(invoice, fixtures.privateKey)
+
+  // Now decode the complete payment request string
+  const decoded = lnpayreq.decode(signedInvoice.paymentRequest, {
+    bech32: 'tbs',
+    pubKeyHash: 0x6f,
+    scriptHash: 0xc4,
+    validWitnessVersions: [0, 1]
+  })
+
+  t.equal(decoded.network.bech32, 'tbs', 'Network should be mutinynet (tbs)')
+  t.end()
+})
