@@ -907,6 +907,9 @@ function decode (paymentRequest, network) {
       case DEFAULTNETWORK.bech32:
         coinNetwork = DEFAULTNETWORK
         break
+      case MUTINENET.bech32:
+        coinNetwork = MUTINENET
+        break
       case TESTNETWORK.bech32:
         coinNetwork = TESTNETWORK
         break
@@ -915,9 +918,6 @@ function decode (paymentRequest, network) {
         break
       case SIMNETWORK.bech32:
         coinNetwork = SIMNETWORK
-        break
-      case MUTINENET.bech32:
-        coinNetwork = MUTINENET
         break
     }
   } else {
