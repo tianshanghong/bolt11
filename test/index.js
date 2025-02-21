@@ -323,3 +323,66 @@ tape('can encode and decode small timestamp', (t) => {
   t.same(reEncoded.paymentRequest, signedData.paymentRequest)
   t.end()
 })
+
+tape('encode and decode for mutinynet', (t) => {
+  const invoice = lnpayreq.encode({
+    network: {
+      bech32: 'tbs',
+      pubKeyHash: 0x6f,
+      scriptHash: 0xc4,
+      validWitnessVersions: [0, 1]
+    },
+    satoshis: 1234,
+    timestamp: 1600000000,
+    tags: [
+      {
+        tagName: 'payment_hash',
+        data: '0001020304050607080900010203040506070809000102030405060708090102'
+      },
+      {
+        tagName: 'description',
+        data: 'Mutinynet test invoice'
+      }
+    ]
+  })
+
+  // Sign the invoice to produce a complete, valid payment request string
+  const signedInvoice = lnpayreq.sign(invoice, fixtures.privateKey)
+
+  // Now decode the complete payment request string
+  const decoded = lnpayreq.decode(signedInvoice.paymentRequest, {
+    bech32: 'tbs',
+    pubKeyHash: 0x6f,
+    scriptHash: 0xc4,
+    validWitnessVersions: [0, 1]
+  })
+
+  t.equal(decoded.network.bech32, 'tbs', 'Network should be mutinynet (tbs)')
+  t.end()
+})
+
+tape('decode mutinynet invoice correctly', (t) => {
+  const invoice = 'lntbs1u1pnm0w7cpp5j8272yaymktfukhjvc6x3vcyawde9lh89vwq2hpgk07eqtp84mwsdq8w3jhxaqcqzzsxqyz5vqsp50l3ka6dejml2k8jq3a9qxjrez7hcm5faf8rkra2wx2ttepgl799q9qxpqysgqyxrx8sr6tmvpl9njj02v63d6csym57wvvfnsz8xs69msz5s7telym3y9q093unx9g83zxaw0jetva0jhhatue2n0l6dh7k9e7ctldtqpjgpkw7'
+
+  const decoded = lnpayreq.decode(invoice)
+
+  // Test basic decoding
+  t.equal(decoded.network.bech32, 'tbs', 'Network should be mutinynet (tbs)')
+  t.equal(decoded.satoshis, 100, 'Amount should be 100 satoshis')
+  t.ok(decoded.complete, 'Invoice should be complete')
+
+  // Test expiry date
+  if (decoded.timeExpireDateString) {
+    t.equal(decoded.timeExpireDateString, '2025-02-21T23:33:44.000Z', 'Should have correct expiry date')
+  }
+
+  // Test payment hash exists
+  const paymentHash = decoded.tagsObject.payment_hash
+  t.equal(paymentHash, '91d5e513a4dd969e5af2663468b304eb9b92fee72b1c055c28b3fd902c27aedd', 'Should have correct payment hash')
+
+  // Verify other important tags
+  t.equal(decoded.tagsObject.description, 'test', 'Should have correct description')
+  t.equal(decoded.timestamp, 1740094424, 'Should have correct timestamp')
+
+  t.end()
+})

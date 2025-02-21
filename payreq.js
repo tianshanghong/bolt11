@@ -34,6 +34,12 @@ const SIMNETWORK = {
   scriptHash: 0x7b,
   validWitnessVersions: [0, 1]
 }
+const MUTINENET = {
+  bech32: 'tbs',
+  pubKeyHash: 0x6f,
+  scriptHash: 0xc4,
+  validWitnessVersions: [0, 1]
+}
 const DEFAULTEXPIRETIME = 3600
 const DEFAULTCLTVEXPIRY = 9
 const DEFAULTDESCRIPTION = ''
@@ -900,6 +906,9 @@ function decode (paymentRequest, network) {
     switch (bech32Prefix) {
       case DEFAULTNETWORK.bech32:
         coinNetwork = DEFAULTNETWORK
+        break
+      case MUTINENET.bech32:
+        coinNetwork = MUTINENET
         break
       case TESTNETWORK.bech32:
         coinNetwork = TESTNETWORK
